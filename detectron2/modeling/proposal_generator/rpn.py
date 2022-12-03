@@ -433,6 +433,7 @@ class RPN(nn.Module):
         images: ImageList,
         features: Dict[str, torch.Tensor],
         gt_instances: Optional[List[Instances]] = None,
+        require_loss: bool = True,
     ):
         """
         Args:
@@ -443,6 +444,8 @@ class RPN(nn.Module):
                 vary between feature maps (e.g., if a feature pyramid is used).
             gt_instances (list[Instances], optional): a length `N` list of `Instances`s.
                 Each `Instances` stores ground-truth instances for the corresponding image.
+            require_loss (bool): True if loss is required for training. If True, `gt_instances`
+                is required.
 
         Returns:
             proposals: list[Instances]: contains fields "proposal_boxes", "objectness_logits"
@@ -466,7 +469,7 @@ class RPN(nn.Module):
             for x in pred_anchor_deltas
         ]
 
-        if self.training:
+        if self.training and require_loss:
             assert gt_instances is not None, "RPN requires gt_instances in training!"
             gt_labels, gt_boxes = self.label_and_sample_anchors(anchors, gt_instances)
             losses = self.losses(
